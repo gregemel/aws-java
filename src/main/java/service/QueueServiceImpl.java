@@ -8,27 +8,37 @@ import model.QueueMessage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import org.json.*;
 
 
 public class QueueServiceImpl implements QueueService {
 
     private AmazonSQS sqsClient;
 
-    QueueServiceImpl(String sqsEndpoint, String awsRegion) {
+    public QueueServiceImpl(String sqsEndpoint, String awsRegion) {
         AwsClientBuilder.EndpointConfiguration config = new AwsClientBuilder.EndpointConfiguration(sqsEndpoint, awsRegion);
         sqsClient = AmazonSQSClientBuilder.standard().withEndpointConfiguration(config).build();
     }
 
-    public void create(String queueName) {
+    public String create(String queueName) {
         try {
-            sqsClient.createQueue(new CreateQueueRequest(queueName)
-                    .addAttributesEntry("DelaySeconds", "60")
+            CreateQueueResult queue = sqsClient.createQueue(new CreateQueueRequest(queueName)
+                    .addAttributesEntry("DelaySeconds", "1")
                     .addAttributesEntry("MessageRetentionPeriod", "86400"));
+
+            Map<String, String> queueAttributes = sqsClient.getQueueAttributes(new GetQueueAttributesRequest(queue.getQueueUrl())
+                    .withAttributeNames(QueueAttributeName.QueueArn.toString())).getAttributes();
+
+            return queueAttributes.get(QueueAttributeName.QueueArn.toString());
+
         } catch (AmazonSQSException e) {
             if (!e.getErrorCode().equals("QueueAlreadyExists")) {
                 throw e;
             }
         }
+
+        return "";
     }
 
     public void send(String queueName, String message) {
@@ -47,8 +57,20 @@ public class QueueServiceImpl implements QueueService {
         List<Message> messages = sqsClient.receiveMessage(queueUrl).getMessages();
 
         if (messages!=null && messages.size() > 0) {
-            return new QueueMessage(messages.get(0).getBody(), messages.get(0).getReceiptHandle());
+            String json = messages.get(0).getBody();
+            System.out.println("received: " + json);
+
+            try {
+                JSONObject obj = new JSONObject(json);
+                String message = obj.getString("Message");
+                return new QueueMessage(message, messages.get(0).getReceiptHandle());
+            } catch (JSONException ex) {
+                System.out.println("hmm, must not be json: " + ex);
+                return new QueueMessage(messages.get(0).getBody(), messages.get(0).getReceiptHandle());
+            }
         } else {
+            //for now, returning empty for no message
+            System.out.println("nope, nothing");
             return new QueueMessage("", "");
         }
     }

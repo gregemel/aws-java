@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface QueueService {
 
-    void create(String queueName);
+    String create(String queueName);
 
     void send(String queueName, String message);
 
