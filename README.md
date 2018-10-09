@@ -15,15 +15,12 @@ If you get errors, check to see that localstack docker is up and that the ports 
 * s3
 * sqs
 * sns
+* dynamo
 * more...
 
 #### todo
-* dynamo
-* kinesis 
-* elasticsearch
-* security - policies and roles
-* jenkins
-* cucumber
+* more aws...
+* ci/cd
 
 ### problems
 
