@@ -21,6 +21,7 @@ public class QueueServiceImpl implements QueueService {
         sqsClient = AmazonSQSClientBuilder.standard().withEndpointConfiguration(config).build();
     }
 
+    @Override
     public String create(String queueName) {
         try {
             CreateQueueResult queue = sqsClient.createQueue(new CreateQueueRequest(queueName)
@@ -41,6 +42,7 @@ public class QueueServiceImpl implements QueueService {
         return "";
     }
 
+    @Override
     public void send(String queueName, String message) {
         String queueUrl = sqsClient.getQueueUrl(queueName).getQueueUrl();
 
@@ -51,6 +53,7 @@ public class QueueServiceImpl implements QueueService {
         sqsClient.sendMessage(send_msg_request);
     }
 
+    @Override
     public QueueMessage receive(String queueName) {
         String queueUrl = sqsClient.getQueueUrl(queueName).getQueueUrl();
 
@@ -75,11 +78,13 @@ public class QueueServiceImpl implements QueueService {
         }
     }
 
+    @Override
     public void delete(String queueName, String messageId) {
         String queueUrl = sqsClient.getQueueUrl(queueName).getQueueUrl();
         sqsClient.deleteMessage(queueUrl, messageId);
     }
 
+    @Override
     public List<String> list() {
         List<String> list = new ArrayList<>();
 

@@ -9,17 +9,15 @@ import com.amazonaws.services.sns.model.*;
 public class TopicServiceImpl implements TopicService {
 
     public TopicServiceImpl(String endpoint, String region) {
-        this.endpoint = endpoint;
-        this.region = region;
         snsClient = AmazonSNSClientBuilder.standard()
                 .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region))
                 .build();
     }
 
     private AmazonSNS snsClient;
-    private String endpoint;
-    private String region;
 
+
+    @Override
     public String create(String topicName) {
 
         //create a new SNS topic
@@ -36,6 +34,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
 
+    @Override
     public String subscribe(String snsTopicArn, String sqsQueueArn) {
 
         //todo: add Policies here
@@ -49,6 +48,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
 
+    @Override
     public void publish(String topicArn, String msg) {
 
         PublishResult publishResult = snsClient.publish(new PublishRequest(topicArn, msg));
